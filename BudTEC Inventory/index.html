@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ระบบจัดการและบริหารคลังข้อมูลครุภัณฑ์และอุปกรณ์ทางการแพทย์ ศูนย์ฝึกทักษะทางคลินิก BudTEC (BudTEC Clinical Skills Training Center)">
+  <meta name="author" content="BudTEC Center">
+  <title>ระบบคลังครุภัณฑ์และอุปกรณ์ ศูนย์ BudTEC</title>
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Icon & Library CDNs -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.330.0/font/lucide.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body class="dark-mode">
+
+  <!-- ==========================================
+       LOGIN OVERLAY SCREEN
+       ========================================== -->
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-box">
+      <img src="Logo/budtec_logo.png" alt="BudTEC Logo" class="login-logo" onerror="this.src='Logo/budtec.png'">
+      <h2 class="login-header-title">BudTEC Inventory</h2>
+      <p class="login-header-subtitle">ระบบจัดการคลังครุภัณฑ์และอุปกรณ์</p>
+      
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="loginUsername" class="form-label">ชื่อผู้ใช้งาน (Username)</label>
+          <input type="text" id="loginUsername" class="form-control" placeholder="ระบุชื่อผู้ใช้งาน" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="loginPassword" class="form-label">รหัสผ่าน (Password)</label>
+          <div class="password-input-container">
+            <input type="password" id="loginPassword" class="form-control" placeholder="ระบุรหัสผ่าน" required>
+            <button type="button" id="loginPasswordToggle" class="password-toggle-btn" aria-label="แสดงรหัสผ่าน">
+              <i class="icon-eye" style="font-size: 1.1rem; display: block;"></i>
+            </button>
+          </div>
+          <span id="loginError" class="error-message"></span>
+        </div>
+        
+        <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
+          <input type="checkbox" id="loginRemember" style="cursor: pointer; width: 16px; height: 16px;">
+          <label for="loginRemember" class="form-label" style="margin-bottom: 0; cursor: pointer;">จดจำการเข้าใช้งาน</label>
+        </div>
+        
+        <button type="submit" class="login-btn">เข้าสู่ระบบ</button>
+        <div style="text-align: center; margin-top: 16px;">
+          <a href="#" id="linkGoToRegister" style="color: var(--accent); font-size: 0.85rem; font-weight: 600; text-decoration: underline;">ยังไม่มีบัญชี? สมัครใช้งานระบบ</a>
+        </div>
+      </form>
+
+      <!-- Registration Form -->
+      <form id="registerForm" class="login-form" style="display: none; max-height: 380px; overflow-y: auto; padding-right: 6px; margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+        <!-- Profile picture upload preview area -->
+        <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 16px; background-color: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.1);">
+          <img id="registerAvatarPreview" src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=150&auto=format&fit=crop" class="user-avatar-img" style="width: 55px; height: 55px;" alt="Register Avatar">
+          <div class="form-group" style="flex: 1; margin-bottom: 0; gap: 4px;">
+            <label for="registerAvatarFile" class="form-label" style="font-size: 0.75rem; color: #cbd5e1; margin-bottom: 0;">รูปถ่ายประจำตัว</label>
+            <input type="file" id="registerAvatarFile" accept="image/*" class="form-control" style="font-size: 0.75rem; padding: 6px 10px;">
+            <input type="hidden" id="registerAvatarUrl">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="registerName" class="form-label">ชื่อ - สกุล</label>
+          <input type="text" id="registerName" class="form-control" placeholder="ระบุชื่อและนามสกุลจริง" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="registerUsername" class="form-label">ชื่อผู้ใช้งาน (Username)</label>
+          <input type="text" id="registerUsername" class="form-control" placeholder="ใช้สำหรับเข้าสู่ระบบ" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="registerPassword" class="form-label">รหัสผ่าน (Password)</label>
+          <div class="password-input-container">
+            <input type="password" id="registerPassword" class="form-control" placeholder="ระบุรหัสผ่านที่ปลอดภัย" required>
+            <button type="button" id="registerPasswordToggle" class="password-toggle-btn" aria-label="แสดงรหัสผ่าน">
+              <i class="icon-eye" style="font-size: 1.1rem; display: block;"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="registerEmail" class="form-label">อีเมล</label>
+          <input type="email" id="registerEmail" class="form-control" placeholder="เช่น user@budtec.com" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="registerPhone" class="form-label">เบอร์โทรศัพท์ติดต่อ</label>
+          <input type="tel" id="registerPhone" class="form-control" placeholder="ระบุเบอร์โทรศัพท์ 10 หลัก" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="registerDepartment" class="form-label">กลุ่มงาน / สังกัด</label>
+          <input type="text" id="registerDepartment" class="form-control" placeholder="เช่น กลุ่มงานเวชศาสตร์ฉุกเฉิน" required>
+        </div>
+
+        <button type="submit" class="login-btn" style="margin-top: 10px;">ส่งข้อมูลสมัครสมาชิก</button>
+        
+        <div style="text-align: center; margin-top: 16px; margin-bottom: 8px;">
+          <a href="#" id="linkGoToLogin" style="color: var(--accent); font-size: 0.85rem; font-weight: 600; text-decoration: underline;">มีบัญชีอยู่แล้ว? เข้าสู่ระบบ</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       APPLICATION MAIN LAYOUT SHELL
+       ========================================== -->
+  <div class="app-container" style="display: none;">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="Logo/budtec_logo_notext.png" alt="BudTEC Logo" class="sidebar-logo" onerror="this.src='Logo/budtec.png'">
+        <div class="sidebar-title-container">
+          <span class="sidebar-title">BudTEC</span>
+          <span class="sidebar-subtitle">Inventory System</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-menu">
+        <div class="menu-section-label">เมนูหลัก</div>
+        <a href="#" class="nav-item active" data-section="dashboard">
+          <i class="icon-layout-dashboard"></i>
+          <span>แผงควบคุม (Dashboard)</span>
+        </a>
+        <a href="#" class="nav-item" data-section="inventory">
+          <i class="icon-package"></i>
+          <span>คลังข้อมูลครุภัณฑ์</span>
+        </a>
+        <a href="#" class="nav-item" data-section="borrow">
+          <i class="icon-arrow-left-right"></i>
+          <span>รายการยืม-คืน</span>
+        </a>
+        
+        <div class="menu-section-label">ข้อมูลระบบ</div>
+        <a href="#" class="nav-item" data-section="vendors">
+          <i class="icon-truck"></i>
+          <span>บริษัทผู้ขาย</span>
+        </a>
+        <a href="#" class="nav-item" data-section="users">
+          <i class="icon-users"></i>
+          <span>ข้อมูลผู้ใช้งาน</span>
+        </a>
+        
+        <!-- Admin Settings Option -->
+        <div class="admin-only-nav" style="display: flex; flex-direction: column;">
+          <div class="menu-section-label">ตั้งค่าข้อมูล</div>
+          <a href="#" class="nav-item" data-section="settings">
+            <i class="icon-sliders-horizontal"></i>
+            <span>จัดการหมวดหมู่ / สถานที่</span>
+          </a>
+        </div>
+      </nav>
+      
+      <!-- Current logged user footer in sidebar -->
+      <div class="sidebar-user" style="flex-direction: column; align-items: stretch; gap: 12px; height: auto;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img id="sidebarUserAvatar" src="" class="user-avatar-img" alt="User Photo" style="display: none;">
+          <div id="sidebarAvatarInitials" class="user-avatar">A</div>
+          <div class="user-info">
+            <span id="sidebarUserName" class="user-name">Loading...</span>
+            <span id="sidebarUserRole" class="user-role-badge">Admin</span>
+          </div>
+        </div>
+        <button id="btnSidebarLogout" class="btn-logout" title="ออกจากระบบ" style="justify-content: center; width: 100%;">
+          <i class="icon-log-out"></i>
+          <span>ออกจากระบบ</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="main-wrapper">
+      
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <button id="btnToggleSidebar" class="sidebar-toggle-btn" title="เปิด/ปิดเมนูนำทาง">
+          <i class="icon-menu"></i>
+        </button>
+        
+        <div class="page-title-container">
+          <h1 id="headerTitle" class="page-title">ยินดีต้อนรับสู่ระบบคลังครุภัณฑ์ BudTEC</h1>
+          <span id="headerSubtitle" class="page-subtitle">จัดการข้อมูลครุภัณฑ์ อุปกรณ์ และการยืม-คืนแบบครบวงจร</span>
+        </div>
+        
+        <div class="topbar-actions">
+          <button id="btnNavScanQR" class="theme-toggle-btn" title="สแกน QR Code ครุภัณฑ์" style="display: flex; align-items: center; justify-content: center;">
+            <i class="icon-qr-code"></i>
+          </button>
+          <button id="themeToggleBtn" class="theme-toggle-btn" title="เปลี่ยนโหมดสี">
+            <i class="icon-sun sun-icon"></i>
+            <i class="icon-moon moon-icon"></i>
+          </button>
+        </div>
+      </header>
+      
+      <!-- Scrollable Main Content -->
+      <div class="content-body">
+        
+        <!-- 1. DASHBOARD SECTION -->
+        <section id="dashboardSection" class="content-section active">
+          <!-- Overdue Warning Container -->
+          <div id="overdueWarningContainer" class="overdue-warning-panel" style="display: none;">
+            <h3 style="color: var(--danger); font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <i class="icon-alert-triangle"></i> รายการครุภัณฑ์เกินกำหนดส่งคืน!
+            </h3>
+            <div id="overdueItemsList"></div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;" class="admin-only-nav">
+            <button id="btnShowAnalytics" class="btn btn-secondary" style="font-weight: 600;"><i class="icon-pie-chart"></i> รายงานวิเคราะห์เชิงลึกสำหรับผู้บริหาร</button>
+          </div>
+
+          <!-- Stats Widgets Grid -->
+          <div class="dashboard-stats-grid">
+            <div class="stat-card total">
+              <div class="stat-details">
+                <span class="stat-label">ครุภัณฑ์ทั้งหมด</span>
+                <span id="dashStatTotal" class="stat-value">0</span>
+              </div>
+              <div class="stat-icon-wrapper"><i class="icon-archive"></i></div>
+            </div>
+            <div class="stat-card ready">
+              <div class="stat-details">
+                <span class="stat-label">พร้อมใช้งาน</span>
+                <span id="dashStatReady" class="stat-value">0</span>
+              </div>
+              <div class="stat-icon-wrapper"><i class="icon-check-circle-2"></i></div>
+            </div>
+            <div class="stat-card borrowed">
+              <div class="stat-details">
+                <span class="stat-label">ถูกยืมไปใช้งาน</span>
+                <span id="dashStatBorrowed" class="stat-value">0</span>
+              </div>
+              <div class="stat-icon-wrapper"><i class="icon-arrow-up-right"></i></div>
+            </div>
+            <div class="stat-card damaged">
+              <div class="stat-details">
+                <span class="stat-label">ชำรุดรอซ่อม</span>
+                <span id="dashStatDamaged" class="stat-value">0</span>
+              </div>
+              <div class="stat-icon-wrapper"><i class="icon-alert-triangle"></i></div>
+            </div>
+          </div>
+          
+          <!-- Charts Layout Grid -->
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3 class="chart-title"><i class="icon-bar-chart-3" style="color: var(--primary)"></i> สถิติการยืมใช้งานครุภัณฑ์ 5 อันดับสูงสุด</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="borrowedChartCanvas"></canvas>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3 class="chart-title">ครุภัณฑ์แยกตามหมวดหมู่</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="categoryChartCanvas"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2-Column Dashboard Lists Grid -->
+          <div class="dashboard-lists-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-top: 24px;">
+            <!-- Column 1: Top Borrowed Items -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3 class="chart-title"><i class="icon-trophy" style="color: var(--warning)"></i> อันดับยอดนิยมการยืมครุภัณฑ์</h3>
+              </div>
+              <div id="topBorrowedList" class="top-borrowed-list">
+                <!-- Dynamically populated top 5 list -->
+              </div>
+            </div>
+
+            <!-- Column 2: Recent Activity Logs -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3 class="chart-title"><i class="icon-history" style="color: var(--primary)"></i> รายการเคลื่อนไหวล่าสุด</h3>
+              </div>
+              <div id="recentActivityList" class="recent-activity-list">
+                <!-- Dynamically populated recent 5 activity events -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. INVENTORY SECTION -->
+        <section id="inventorySection" class="content-section">
+          <!-- Filters & Actions Bar -->
+          <div class="controls-panel">
+            <div class="search-input-wrapper">
+              <i class="icon-search"></i>
+              <input type="text" id="inventorySearch" class="search-input" placeholder="ค้นหาด้วยรหัสครุภัณฑ์, เลขครุภัณฑ์ หรือชื่ออุปกรณ์...">
+            </div>
+            
+            <div class="filter-controls-group">
+              <select id="filterCategory" class="filter-select">
+                <option value="all">ทุกหมวดหมู่</option>
+              </select>
+              <select id="filterLocation" class="filter-select">
+                <option value="all">ทุกสถานที่เก็บ</option>
+              </select>
+              <select id="filterStatus" class="filter-select">
+                <option value="all">ทุกสถานะ</option>
+                <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
+                <option value="ถูกยืม">ถูกยืม</option>
+                <option value="ชำรุด">ชำรุด</option>
+                <option value="รออนุมัติยืม">รออนุมัติยืม</option>
+                <option value="รออนุมัติคืน">รออนุมัติคืน</option>
+              </select>
+              
+              <button id="btnExportEquipment" class="btn btn-secondary admin-only-btn">
+                <i class="icon-download"></i> ดาวน์โหลดข้อมูล (Excel)
+              </button>
+              <button id="btnAddEquipment" class="btn btn-primary admin-only-btn">
+                <i class="icon-plus"></i> เพิ่มครุภัณฑ์ใหม่
+              </button>
+            </div>
+          </div>
+
+          <!-- Cards Grid Container -->
+          <div id="equipmentGrid" class="equipment-grid">
+            <!-- Dynamically populated cards -->
+          </div>
+        </section>
+
+        <!-- 3. BORROW / RETURN LOGS SECTION -->
+        <section id="borrowSection" class="content-section">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>รหัสครุภัณฑ์</th>
+                  <th>ชื่อครุภัณฑ์ / อุปกรณ์</th>
+                  <th>ผู้ทำรายการยืม</th>
+                  <th>วันที่ยืม</th>
+                  <th>กำหนดส่งคืน</th>
+                  <th>วันที่ส่งคืนจริง</th>
+                  <th>สถานะการยืม</th>
+                </tr>
+              </thead>
+              <tbody id="borrowLogsTableBody">
+                <!-- Dynamically populated transaction logs -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 4. VENDORS SECTION -->
+        <section id="vendorsSection" class="content-section">
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+            <button id="btnAddVendor" class="btn btn-primary admin-only-btn">
+              <i class="icon-plus"></i> เพิ่มบริษัทผู้ขายใหม่
+            </button>
+          </div>
+          
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ชื่อบริษัทผู้ขาย</th>
+                  <th>ชื่อผู้แทนขาย</th>
+                  <th>ชื่อเล่นผู้แทนขาย</th>
+                  <th>เบอร์โทรศัพท์</th>
+                  <th>หมายเหตุ</th>
+                  <th class="admin-only-nav" style="width: 220px;">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="vendorsTableBody">
+                <!-- Dynamically populated vendor rows -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 5. USERS / PROFILE SECTION -->
+        <section id="usersSection" class="content-section">
+          <!-- View for Admin: User Accounts Table -->
+          <div id="usersAdminContainer" style="display: none;">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+              <button id="btnAddUser" class="btn btn-primary">
+                <i class="icon-plus"></i> เพิ่มผู้ใช้งานระบบใหม่
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ชื่อ - สกุล</th>
+                    <th>ชื่อผู้ใช้ (Username)</th>
+                    <th>กลุ่มงาน/ฝ่าย</th>
+                    <th>อีเมล</th>
+                    <th>เบอร์โทรศัพท์</th>
+                    <th>สิทธิ์ผู้ใช้งาน</th>
+                    <th style="width: 220px;">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                  <!-- Dynamically populated user list -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- View for Normal User: Personal Profile Edit form (2-Column Grid) -->
+          <div id="usersProfileContainer" style="display: none; max-width: 800px; margin: 0 auto; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-md);">
+            <h3 style="font-weight: 600; margin-bottom: 24px; color: var(--primary);"><i class="icon-user-cog"></i> แก้ไขข้อมูลส่วนตัวผู้ใช้งาน</h3>
+            
+            <form id="profileForm">
+              <input type="hidden" id="profileFormId">
+              <div style="display: flex; gap: 32px; flex-wrap: wrap;">
+                
+                <!-- Left avatar upload panel -->
+                <div style="flex: 1; min-width: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; border-right: 1px solid var(--border-color); padding-right: 32px;">
+                  <img id="profileAvatarPreview" src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=150&auto=format&fit=crop" class="user-avatar-img" style="width: 120px; height: 120px; border-width: 3px;" alt="Avatar Preview">
+                  <div class="form-group" style="width: 100%;">
+                    <label for="profileAvatarFile" class="form-label" style="text-align: center; display: block;">รูปถ่ายผู้ใช้งาน</label>
+                    <input type="file" id="profileAvatarFile" accept="image/*" class="form-control" style="font-size: 0.8rem;">
+                    <button type="button" id="btnDeleteProfileAvatar" class="btn btn-danger btn-sm" style="margin-top: 8px; width: 100%; display: none;"><i class="icon-trash-2"></i> ลบรูปภาพโปรไฟล์</button>
+                  </div>
+                </div>
+                
+                <!-- Right details fields -->
+                <div style="flex: 2; min-width: 280px;" class="form-grid">
+                  <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="profileName" class="form-label">ชื่อ - สกุล</label>
+                    <input type="text" id="profileName" class="form-control" required>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="profileUsername" class="form-label">ชื่อผู้ใช้ (Username)</label>
+                    <input type="text" id="profileUsername" class="form-control" disabled>
+                    <span style="font-size: 0.75rem; color: var(--text-light)">*ไม่สามารถแก้ไขได้</span>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="profilePassword" class="form-label">รหัสผ่าน (Password)</label>
+                    <div class="password-input-container">
+                      <input type="password" id="profilePassword" class="form-control" required>
+                      <button type="button" id="profilePasswordToggle" class="password-toggle-btn" aria-label="แสดงรหัสผ่าน">
+                        <i class="icon-eye"></i>
+                      </button>
+                    </div>
+                  </div>
+  
+                  <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="profileDepartment" class="form-label">กลุ่มงาน / สังกัด</label>
+                    <input type="text" id="profileDepartment" class="form-control">
+                  </div>
+  
+                  <div class="form-group">
+                    <label for="profileEmail" class="form-label">อีเมล</label>
+                    <input type="email" id="profileEmail" class="form-control">
+                  </div>
+  
+                  <div class="form-group">
+                    <label for="profilePhone" class="form-label">เบอร์โทรศัพท์ติดต่อ</label>
+                    <input type="tel" id="profilePhone" class="form-control">
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <button type="submit" class="btn btn-primary"><i class="icon-save"></i> บันทึกข้อมูลส่วนตัว</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- 6. SETTINGS SECTION (ADMIN ONLY) -->
+        <section id="settingsSection" class="content-section">
+          <div class="settings-layout">
+            
+            <!-- Left Sub-nav tabs -->
+            <nav class="settings-nav">
+              <div class="settings-nav-item active" data-tab="categories">หมวดหมู่ครุภัณฑ์</div>
+              <div class="settings-nav-item" data-tab="locations">สถานที่จัดเก็บ</div>
+              <div class="settings-nav-item" data-tab="funding">แหล่งหมวดเงินงบประมาณ</div>
+              <div class="settings-nav-item" data-tab="telegram">ตั้งค่าการแจ้งเตือน Telegram</div>
+            </nav>
+            
+            <!-- Right Panels -->
+            <div class="settings-content-body">
+              <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+                <button id="btnAddMeta" class="btn btn-primary btn-sm"><i class="icon-plus"></i> เพิ่มข้อมูลใหม่</button>
+              </div>
+
+              <!-- Tab A: Categories -->
+              <div id="settings-categories-panel" class="settings-content-panel active">
+                <div class="table-responsive">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>รหัส</th>
+                        <th>ชื่อหมวดหมู่ครุภัณฑ์</th>
+                        <th style="width: 220px;">จัดการ</th>
+                      </tr>
+                    </thead>
+                    <tbody id="settingsCategoriesTableBody">
+                      <!-- Loaded via app.js -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Tab B: Locations -->
+              <div id="settings-locations-panel" class="settings-content-panel">
+                <div class="table-responsive">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>รหัส</th>
+                        <th>ชื่อสถานที่จัดเก็บ</th>
+                        <th style="width: 220px;">จัดการ</th>
+                      </tr>
+                    </thead>
+                    <tbody id="settingsLocationsTableBody">
+                      <!-- Loaded via app.js -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Tab C: Funding Sources -->
+              <div id="settings-funding-panel" class="settings-content-panel">
+                <div class="table-responsive">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>รหัส</th>
+                        <th>ชื่อแหล่งเงินอุดหนุนจัดซื้อ</th>
+                        <th style="width: 220px;">จัดการ</th>
+                      </tr>
+                    </thead>
+                    <tbody id="settingsFundingTableBody">
+                      <!-- Loaded via app.js -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Tab D: Telegram Config -->
+              <div id="settings-telegram-panel" class="settings-content-panel">
+                <div style="max-width: 600px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow-sm);">
+                  <h3 style="font-weight: 600; color: #24a1de; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <svg style="width: 24px; height: 24px; fill: #24a1de;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-1-.65-.35-1 .22-1.62.15-.15 2.7-2.46 2.75-2.68.01-.03.01-.14-.06-.2-.07-.06-.17-.04-.25-.02-.11.02-1.78 1.13-5.03 3.33-.48.33-.91.49-1.3.48-.43-.01-1.26-.24-1.88-.45-.75-.25-1.35-.39-1.3-.83.03-.23.35-.46.96-.71 3.76-1.64 6.27-2.72 7.54-3.25 3.58-1.48 4.32-1.74 4.81-1.75.11 0 .35.03.5.16.13.12.17.28.19.4z"/>
+                    </svg>
+                    ระบบแจ้งเตือน Telegram Bot (กลุ่มผู้ดูแลระบบ)
+                  </h3>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6;">
+                    ตั้งค่ารับการแจ้งเตือนอัตโนมัติผ่านกลุ่ม Telegram ศูนย์ BudTEC เมื่อผู้ใช้ทำรายการยืมครุภัณฑ์ คืนครุภัณฑ์ หรือเมื่อผู้ดูแลระบบทำการอนุมัติรายการ
+                  </p>
+                  
+                  <form id="telegramConfigForm" style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px; margin-bottom: 8px;">
+                      <input type="checkbox" id="telegramEnabled" style="cursor: pointer; width: 18px; height: 18px;">
+                      <label for="telegramEnabled" class="form-label" style="margin-bottom: 0; cursor: pointer; font-weight: 600;">เปิดใช้งานระบบแจ้งเตือน Telegram</label>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label for="telegramBotToken" class="form-label">Telegram Bot Token</label>
+                      <input type="password" id="telegramBotToken" class="form-control" placeholder="ระบุ Telegram Bot Token (จาก @BotFather)" style="width: 100%;">
+                      <span style="font-size: 0.75rem; color: var(--text-light); margin-top: 4px; display: block;">
+                        *สร้างบอทผ่าน <a href="https://t.me/BotFather" target="_blank" style="color: var(--primary); text-decoration: underline;">@BotFather</a> เพื่อรับโทเคน และเพิ่มบอทเข้ากลุ่มแชทของคุณ
+                      </span>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label for="telegramChatId" class="form-label">Telegram Chat ID (หรือกลุ่มผู้ดูแลระบบ)</label>
+                      <input type="text" id="telegramChatId" class="form-control" placeholder="ระบุ Chat ID เช่น -100xxxxxxxxxx" style="width: 100%;">
+                      <span style="font-size: 0.75rem; color: var(--text-light); margin-top: 4px; display: block;">
+                        *ระบุไอดีกลุ่มแชทหรือห้องคุยของกลุ่มผู้ดูแลระบบที่บอทอาศัยอยู่
+                      </span>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="telegramTopicId" class="form-label">Telegram Topic ID (หรือ Message Thread ID - ไม่จำเป็น)</label>
+                      <input type="text" id="telegramTopicId" class="form-control" placeholder="ระบุ Topic ID เช่น 123 (เว้นว่างไว้เพื่อแจ้งเตือนในห้องหลัก / กลุ่มทั่วไป)" style="width: 100%;">
+                      <span style="font-size: 0.75rem; color: var(--text-light); margin-top: 4px; display: block;">
+                        *ใช้สำหรับกรณีที่กลุ่ม Telegram ของคุณเปิดคุณสมบัติเป็น Forum (หัวข้อย่อย) สามารถระบุ ID ของหัวข้อนั้นๆ เพื่อแยกกลุ่มคุยได้
+                      </span>
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                      <button type="submit" class="btn btn-primary" style="background-color: #24a1de; border-color: #24a1de;">
+                        <i class="icon-save"></i> บันทึกการตั้งค่า
+                      </button>
+                      <button type="button" id="btnTestTelegram" class="btn btn-secondary">
+                        <i class="icon-send"></i> ทดสอบส่งข้อความจำลอง
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Sidebar Overlay Backdrop for Mobile -->
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+  <!-- ==========================================
+       MODAL DIALOG DIALOGS
+       ========================================== -->
+  
+  <!-- Equipment form modal (Add / Edit) -->
+  <div id="equipmentModal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 720px;">
+      <div class="modal-header">
+        <h3 id="eqFormTitle" class="modal-title">เพิ่มข้อมูลครุภัณฑ์ / อุปกรณ์</h3>
+        <button class="btn-close-modal"><i class="icon-x"></i></button>
+      </div>
+      <form id="equipmentForm">
+        <input type="hidden" id="eqFormId">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="eqFormAssetNumber" class="form-label">เลขครุภัณฑ์ (ออกโดยงานพัสดุ)</label>
+              <input type="text" id="eqFormAssetNumber" class="form-control" placeholder="เช่น พศ.68-ออ-0001/4" required>
+            </div>
+            <div class="form-group">
+              <label for="eqFormName" class="form-label">ชื่อครุภัณฑ์ / อุปกรณ์</label>
+              <input type="text" id="eqFormName" class="form-control" placeholder="เช่น หุ่นสาธิตการเจาะเลือด" required>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="eqFormPrice" class="form-label">ราคาที่ซื้อ (บาท)</label>
+              <input type="number" id="eqFormPrice" class="form-control" placeholder="ราคาจัดซื้อ" required>
+            </div>
+            <div class="form-group">
+              <label for="eqFormFiscalYear" class="form-label">ปีงบประมาณที่ซื้อ (พ.ศ.)</label>
+              <input type="number" id="eqFormFiscalYear" class="form-control" placeholder="เช่น 2568" required>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="eqFormCategory" class="form-label">หมวดหมู่ครุภัณฑ์</label>
+              <select id="eqFormCategory" class="form-control" required></select>
+            </div>
+            <div class="form-group">
+              <label for="eqFormLocation" class="form-label">สถานที่จัดเก็บหลัก</label>
+              <select id="eqFormLocation" class="form-control" required></select>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="eqFormFundingSource" class="form-label">หมวดเงินงบประมาณจัดซื้อ</label>
+              <select id="eqFormFundingSource" class="form-control" required></select>
+            </div>
+            <div class="form-group">
+              <label for="eqFormVendor" class="form-label">บริษัทผู้ขาย</label>
+              <select id="eqFormVendor" class="form-control" required></select>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="eqFormStatus" class="form-label">สถานะครุภัณฑ์</label>
+              <select id="eqFormStatus" class="form-control">
+                <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
+                <option value="ถูกยืม">ถูกยืม</option>
+                <option value="ชำรุด">ชำรุด</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="eqFormManualUrl" class="form-label">ลิงก์คู่มือ (URL หรือที่อยู่ไฟล์)</label>
+              <input type="text" id="eqFormManualUrl" class="form-control" placeholder="เช่น Manuals/manual-cpr.pdf">
+            </div>
+          </div>
+
+          <!-- File Upload Simulated Helpers -->
+          <div class="form-grid" style="margin-top: 10px;">
+            <div class="form-group">
+              <label for="eqFormManualFile" class="form-label">อัปโหลดไฟล์คู่มือการใช้งาน (PDF)</label>
+              <input type="file" id="eqFormManualFile" accept=".pdf" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="eqFormImageFile" class="form-label">อัปโหลดรูปภาพครุภัณฑ์</label>
+              <input type="file" id="eqFormImageFile" accept="image/*" class="form-control">
+            </div>
+          </div>
+
+          <!-- Preset visual options -->
+          <div class="form-group" style="margin-top: 16px;">
+            <label class="form-label">หรือ เลือกจากคลังภาพครุภัณฑ์การแพทย์เริ่มต้น:</label>
+            <div class="image-preset-picker">
+              <div class="preset-img-option selected" data-url="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=300&auto=format&fit=crop">
+                <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=150&auto=format&fit=crop" alt="Medical Monitor">
+              </div>
+              <div class="preset-img-option" data-url="https://images.unsplash.com/photo-1516549655169-df83a0774514?q=80&w=300&auto=format&fit=crop">
+                <img src="https://images.unsplash.com/photo-1516549655169-df83a0774514?q=80&w=150&auto=format&fit=crop" alt="Labor Simulator">
+              </div>
+              <div class="preset-img-option" data-url="https://images.unsplash.com/photo-1603398938378-e54eab446dde?q=80&w=300&auto=format&fit=crop">
+                <img src="https://images.unsplash.com/photo-1603398938378-e54eab446dde?q=80&w=150&auto=format&fit=crop" alt="First Aid kit">
+              </div>
+              <div class="preset-img-option" data-url="https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?q=80&w=300&auto=format&fit=crop">
+                <img src="https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?q=80&w=150&auto=format&fit=crop" alt="Suture Tools">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary"><i class="icon-save"></i> บันทึกข้อมูล</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- PDF Manual Viewer Modal -->
+  <div id="manualModal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="manualTitle" class="modal-title">คู่มือการใช้งานครุภัณฑ์</h3>
+        <button class="btn-close-modal"><i class="icon-x"></i></button>
+      </div>
+      <div class="modal-body text-center">
+        <div class="pdf-viewer-container">
+          <i class="icon-file-text pdf-icon"></i>
+          <h4 id="manualFileName" style="margin-bottom: 8px;">manual.pdf</h4>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 300px; text-align: center;">
+            (ระบบได้จำลองการอ่านไฟล์คู่มือ PDF สำเร็จ คุณสามารถดาวน์โหลดไฟล์คู่มือนี้สำหรับคู่มือการเรียนการสอน)
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="#" class="btn btn-primary" onclick="alert('จำลองการดาวน์โหลดไฟล์คู่มือสำเร็จ'); return false;">
+          <i class="icon-download"></i> ดาวน์โหลดคู่มือ
+        </a>
+        <button class="btn btn-secondary btn-close-modal">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Borrow confirm modal -->
+  <div id="borrowModal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="borrowTitle" class="modal-title">ยืนยันรายการยืมครุภัณฑ์</h3>
+        <button class="btn-close-modal"><i class="icon-x"></i></button>
+      </div>
+      <form id="borrowForm">
+        <input type="hidden" id="borrowEqId">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="borrowDate" class="form-label">วันที่ยืมครุภัณฑ์</label>
+              <input type="date" id="borrowDate" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="expectedReturnDate" class="form-label">กำหนดส่งคืนครุภัณฑ์</label>
+              <input type="date" id="expectedReturnDate" class="form-control" required>
+            </div>
+          </div>
+          
+          <div class="form-group" style="margin-top: 16px;">
+            <label for="borrowPurpose" class="form-label">วัตถุประสงค์ในการยืมใช้งาน</label>
+            <input type="text" id="borrowPurpose" class="form-control" placeholder="เช่น ใช้สอนนักศึกษาแพทย์เรื่องการกู้ชีพในเด็กแรกเกิด" required>
+          </div>
+
+          <div class="form-group" style="margin-top: 16px;">
+            <label for="borrowNotes" class="form-label">หมายเหตุเพิ่มเติม (ถ้ามี)</label>
+            <textarea id="borrowNotes" class="form-control" rows="2" placeholder="เช่น ขออุปกรณ์เสริมสายพ่วงไฟฟ้า"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary"><i class="icon-check"></i> ยืนยันการยืม</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Return confirm modal -->
+  <div id="returnModal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="returnTitle" class="modal-title">คืนครุภัณฑ์และตรวจสอบความสมบูรณ์</h3>
+        <button class="btn-close-modal"><i class="icon-x"></i></button>
+      </div>
+      <form id="returnForm">
+        <input type="hidden" id="returnEqId">
+        <input type="hidden" id="returnTxId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="returnDate" class="form-label">วันที่ส่งคืน</label>
+            <input type="date" id="returnDate" class="form-control" required>
+          </div>
+
+          <div class="form-group" style="margin-top: 20px; flex-direction: row; align-items: center; gap: 8px;">
+            <input type="checkbox" id="returnIsDamaged" style="cursor: pointer; width: 18px; height: 18px;">
+            <label for="returnIsDamaged" class="form-label" style="margin-bottom: 0; color: var(--danger); font-weight: 600; cursor: pointer;">
+              พบปัญหาชำรุดเสียหายหลังใช้งาน
+            </label>
+          </div>
+
+          <div class="form-group" style="margin-top: 20px;">
+            <label for="returnNotes" class="form-label">หมายเหตุ/ประเมินสภาพการคืน</label>
+            <textarea id="returnNotes" class="form-control" rows="2" placeholder="เช่น อุปกรณ์ครบถ้วน สภาพดีปกติ หรือ อธิบายลักษณะชำรุดเสียหาย"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary"><i class="icon-check-square"></i> ยืนยันการส่งคืน</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Vendor form modal -->
+  <div id="vendorModal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="vendorFormTitle" class="modal-title">เพิ่มบริษัทผู้ขายและผู้แทน</h3>
+        <button class="btn-close-modal"><i class="icon-x"></i></button>
+      </div>
+      <form id="vendorForm">
+        <input type="hidden" id="vendorFormId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="vendorCompanyName" class="form-label">ชื่อบริษัทผู้ขาย / บริษัทตัวแทนจำหน่าย</label>
+            <input type="text" id="vendorCompanyName" class="form-control" placeholder="ชื่อจดทะเบียนบริษัท" required>
+          </div>
+          
+          <div class="form-grid" style="margin-top: 16px;">
+            <div class="form-group">
+              <label for="vendorRepName" class="form-label">ชื่อ - สกุล ผู้แทนขาย</label>
+              <input type="text" id="vendorRepName" class="form-control" placeholder="ผู้ติดต่อประสานงาน">
+            </div>
+            <div class="form-group">
+              <label for="vendorRepNickname" class="form-label">ชื่อเล่นผู้แทนขาย</label>
+              <input type="text" id="vendorRepNickname" class="form-control" placeholder="เช่น คุณเอ">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 16px;">
+            <label for="vendorPhone" class="form-label">เบอร์โทรศัพท์ติดต่อ</label>
+            <input type="tel" id="vendorPhone" class="form-control" placeholder="เช่น 08x-xxx-xxxx" required>
+          </div>
+
+          <div class="form-group" style="margin-top: 16px;">
+            <label for="vendorRemarks" class="form-label">หมายเหตุเพิ่มเติม</label>
+            <textarea id="vendorRemarks" class="form-control" rows="2" placeholder="เช่น เงื่อนไขประกัน ข้อมูลบริการ หรือรายละเอียดอื่นๆ"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary"><i class="icon-save"></i> บันทึกผู้ขาย</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Vendor Detail Modal -->
+  <div id="vendorDetailModal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 500px;">
+      <div class="modal-header" style="background-color: var(--primary); border-bottom: 2px solid var(--accent);">
+        <h3 class="modal-title" style="color: var(--accent); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <i class="icon-briefcase"></i> ข้อมูลบริษัทผู้ขาย / บริษัทตัวแทน
+        </h3>
+        <button class="btn-close-modal" style="color: #fff; opacity: 0.8;"><i class="icon-x"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 8px;">
+          <div id="vDetailCompanyName" style="font-size: 1.25rem; font-weight: 700; color: var(--primary); line-height: 1.3;">-</div>
+          <span style="font-size: 0.75rem; color: var(--text-light); display: block; margin-top: 4px;">ข้อมูลร้านค้า/บริษัทผู้ส่งมอบบริการ</span>
+        </div>
+        
+        <div class="details-grid" style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+          <div class="detail-field-box" style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px;">
+            <div class="detail-field-icon-label" style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+              <i class="icon-user"></i> ชื่อผู้แทนขาย / ผู้ติดต่อประสานงาน
+            </div>
+            <div id="vDetailRepName" style="font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">-</div>
+          </div>
+          
+          <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="detail-field-box" style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px;">
+              <div class="detail-field-icon-label" style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <i class="icon-smile"></i> ชื่อเล่น
+              </div>
+              <div id="vDetailRepNickname" style="font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">-</div>
+            </div>
+            <div class="detail-field-box" style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px;">
+              <div class="detail-field-icon-label" style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <i class="icon-phone"></i> เบอร์โทรศัพท์ติดต่อ
+              </div>
+              <div id="vDetailPhone" style="font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">-</div>
+            </div>
+          </div>
+          
+          <div class="detail-field-box" style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px;">
+            <div class="detail-field-icon-label" style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+              <i class="icon-alert-circle"></i> หมายเหตุเพิ่มเติม
+            </div>
+            <div id="vDetailRemarks" style="font-weight: 500; color: var(--text-primary); font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap;">-</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="background: var(--bg-primary); border-top: 1px solid var(--border-color); display: flex; gap: 12px; justify-content: flex-end;">
+        <div id="vDetailAdminActions" style="display: flex; gap: 8px;"></div>
+        <button type="button" class="btn btn-secondary btn-close-modal">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Detail Modal -->
+  <div id="userDetailModal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 500px;">
+      <div class="modal-header" style="background-color: var(--primary); border-bottom: 2px solid var(--accent);">
+        <h3 class="modal-title" style="color: var(--accent); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <i class="icon-user"></i> รายละเอียดผู้ใช้งาน
+        </h3>
+        <button class="btn-close-modal" style="color: #fff; opacity: 0.8;"><i class="icon-x"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 8px; gap: 12px;">
+          <img id="uDetailAvatar" src="" class="user-avatar-img" style="width: 90px; height: 90px; border: 2.5px solid var(--accent); object-fit: cover; border-radius: 50%;" alt="User Photo">
+          <div id="uDetailAvatarInitials" class="user-avatar" style="width: 90px; height: 90px; font-size: 2.2rem; display: none; background-color: var(--primary); color:#fff; align-items:center; justify-content:center; font-weight:700; border-radius:50%; border: 2.5px solid var(--accent);">A</div>
+          <div style="text-align: center;">
+            <div id="uDetailName" style="font-size: 1.25rem; font-weight: 700; color: var(--primary); line-height: 1.3;">-</div>
+            <span id="uDetailUsername" style="font-family: monospace; font-size: 0.85rem; color: var(--text-light); display: block; margin-top: 4px;">-</span>
+          </div>
+        </div>
+        
+        <div class="details-grid" style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+          <div class="detail-field-box" style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px;">
+            <div class="detail-field-icon-label" style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+              <i class="icon-building"></i> กลุ่มงาน / สังกัด
+            </div>
+            <div id="uDetailDepartment" style="font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">-</div>
+          </div>
+          
+          <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="detail-field-box" style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px;">
+              <div class="detail-field-icon-label" style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <i class="icon-shield"></i> ระดับสิทธิ์
+              </div>
+              <div id="uDetailRole" style="font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">-</div>
+            </div>
+            <div class="detail-field-box" style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px;">
+              <div class="detail-field-icon-label" style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <i class="icon-phone"></i> เบอร์โทรศัพท์
+              </div>
+              <div id="uDetailPhone" style="font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">-</div>
+            </div>
+          </div>
+          
+          <div class="detail-field-box" style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px;">
+            <div class="detail-field-icon-label" style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+              <i class="icon-mail"></i> อีเมล
+            </div>
+            <div id="uDetailEmail" style="font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">-</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="background: var(--bg-primary); border-top: 1px solid var(--border-color); display: flex; gap: 12px; justify-content: flex-end;">
+        <div id="uDetailAdminActions" style="display: flex; gap: 8px;"></div>
+        <button type="button" class="btn btn-secondary btn-close-modal">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- User form modal (Admin management only - supports photo preview / upload) -->
+  <div id="userModal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="userFormTitle" class="modal-title">เพิ่มผู้ใช้งานระบบ</h3>
+        <button class="btn-close-modal"><i class="icon-x"></i></button>
+      </div>
+      <form id="userForm">
+        <input type="hidden" id="userFormId">
+        <input type="hidden" id="userFormAvatarUrl">
+        
+        <div class="modal-body">
+          <!-- Avatar upload preview area -->
+          <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px; background-color: var(--bg-primary); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <img id="userFormAvatarPreview" src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=150&auto=format&fit=crop" class="user-avatar-img" style="width: 70px; height: 70px;" alt="User Photo">
+            <div class="form-group" style="flex: 1;">
+              <label for="userFormAvatarFile" class="form-label">รูปถ่ายผู้ใช้งาน</label>
+              <input type="file" id="userFormAvatarFile" accept="image/*" class="form-control" style="font-size: 0.8rem;">
+              <button type="button" id="btnDeleteUserFormAvatar" class="btn btn-danger btn-sm" style="margin-top: 8px; display: none;"><i class="icon-trash-2"></i> ลบรูปภาพ</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="userFormName" class="form-label">ชื่อ - สกุล ผู้เข้าใช้งาน</label>
+            <input type="text" id="userFormName" class="form-control" required>
+          </div>
+
+          <div class="form-grid" style="margin-top: 16px;">
+            <div class="form-group">
+              <label for="userFormUsername" class="form-label">ชื่อผู้ใช้ (Username)</label>
+              <input type="text" id="userFormUsername" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="userFormPassword" class="form-label">รหัสผ่าน (Password)</label>
+              <div class="password-input-container">
+                <input type="password" id="userFormPassword" class="form-control" required>
+                <button type="button" id="userFormPasswordToggle" class="password-toggle-btn" aria-label="แสดงรหัสผ่าน">
+                  <i class="icon-eye"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid" style="margin-top: 16px;">
+            <div class="form-group">
+              <label for="userFormRole" class="form-label">สิทธิ์ระดับผู้ใช้งาน</label>
+              <select id="userFormRole" class="form-control">
+                <option value="user">ผู้ใช้งานทั่วไป (User)</option>
+                <option value="admin">ผู้ดูแลระบบ (Admin)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="userFormDepartment" class="form-label">กลุ่มงาน / สังกัด</label>
+              <input type="text" id="userFormDepartment" class="form-control" placeholder="เช่น ศูนย์ BudTEC">
+            </div>
+          </div>
+
+          <div class="form-grid" style="margin-top: 16px;">
+            <div class="form-group">
+              <label for="userFormEmail" class="form-label">อีเมล</label>
+              <input type="email" id="userFormEmail" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="userFormPhone" class="form-label">เบอร์โทรศัพท์ติดต่อ</label>
+              <input type="tel" id="userFormPhone" class="form-control">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary"><i class="icon-save"></i> บันทึกผู้ใช้</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Customizable Metadata item modal (Admin Categories / Storage / Funding Sources) -->
+  <div id="metaModal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="metaModalTitle" class="modal-title">จัดการข้อมูลระบบ</h3>
+        <button class="btn-close-modal"><i class="icon-x"></i></button>
+      </div>
+      <form id="metaForm">
+        <input type="hidden" id="metaFormType">
+        <input type="hidden" id="metaFormId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="metaValueInput" class="form-label">ชื่อข้อมูล</label>
+            <input type="text" id="metaValueInput" class="form-control" placeholder="ระบุคำอธิบายข้อมูล" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary"><i class="icon-save"></i> บันทึกรายการ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Equipment Detail Modal (Updated Balanced Layout with Blue Header & Yellow Text) -->
+  <div id="equipmentDetailModal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 720px;">
+      <div class="modal-header" style="background-color: var(--primary); border-bottom: 2px solid var(--accent);">
+        <h3 id="eqDetailTitle" class="modal-title" style="color: var(--accent); font-weight: 700;">รายละเอียดครุภัณฑ์</h3>
+        <button class="btn-close-modal" style="color: var(--accent);"><i class="icon-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="eq-detail-grid">
+          <!-- Left side (Media, Status, Actions) -->
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <img id="eqDetailImage" class="eq-detail-image" src="" alt="Equipment Image" onerror="this.src='https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=300&auto=format&fit=crop'">
+            
+            <div style="background-color: var(--bg-primary); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div class="detail-field-icon-label" style="margin-bottom: 6px;">
+                <i class="icon-activity"></i> สถานะการใช้งานปัจจุบัน
+              </div>
+              <div><span id="eqDetailStatusBadge" class="badge text-center" style="width: 100%; display: block; padding: 8px 12px; font-size: 0.85rem;">พร้อมใช้งาน</span></div>
+            </div>
+
+            <div style="background-color: var(--bg-primary); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; gap: 8px;">
+              <div class="detail-field-icon-label" style="margin-bottom: 2px; width: 100%; display: flex; justify-content: center; gap: 6px; align-items: center;">
+                <i class="icon-qr-code"></i> QR Code ของครุภัณฑ์
+              </div>
+              <img id="eqDetailQRCode" src="" alt="QR Code" style="width: 140px; height: 140px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 4px; background: white; object-fit: contain;">
+              <span style="font-size: 0.72rem; color: var(--text-light); text-align: center;">สแกนเพื่อเปิดดูข้อมูลครุภัณฑ์นี้</span>
+            </div>
+          </div>
+          
+          <!-- Right side (Info fields arranged neatly in balanced 2-column cards) -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-content: start;">
+            <div style="grid-column: 1 / -1; border-bottom: 2.5px solid var(--border-color); padding-bottom: 12px; margin-bottom: 4px;">
+              <div class="detail-field-icon-label" style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 4px;">
+                <i class="icon-package"></i> ชื่อครุภัณฑ์ / อุปกรณ์
+              </div>
+              <div id="eqDetailName" style="font-size: 1.35rem; font-weight: 700; color: var(--primary); line-height: 1.3;">-</div>
+            </div>
+            
+            <div class="detail-field-card">
+              <div class="detail-field-icon-label">
+                <i class="icon-tag"></i> รหัสครุภัณฑ์ (BudTEC)
+              </div>
+              <div id="eqDetailId" class="detail-field-value" style="font-family: monospace; letter-spacing: 0.5px;">-</div>
+            </div>
+
+            <div class="detail-field-card">
+              <div class="detail-field-icon-label">
+                <i class="icon-hash"></i> เลขครุภัณฑ์ (พัสดุ)
+              </div>
+              <div id="eqDetailAssetNumber" class="detail-field-value">-</div>
+            </div>
+
+            <div class="detail-field-card">
+              <div class="detail-field-icon-label">
+                <i class="icon-banknote"></i> ราคาจัดซื้อ
+              </div>
+              <div id="eqDetailPrice" class="detail-field-value" style="color: var(--primary); font-size: 1.05rem;">-</div>
+            </div>
+
+            <div class="detail-field-card">
+              <div class="detail-field-icon-label">
+                <i class="icon-calendar"></i> ปีงบประมาณที่ซื้อ
+              </div>
+              <div id="eqDetailFiscalYear" class="detail-field-value">-</div>
+            </div>
+
+            <div class="detail-field-card">
+              <div class="detail-field-icon-label">
+                <i class="icon-archive"></i> หมวดหมู่ครุภัณฑ์
+              </div>
+              <div id="eqDetailCategory" class="detail-field-value">-</div>
+            </div>
+
+            <div class="detail-field-card">
+              <div class="detail-field-icon-label">
+                <i class="icon-map-pin"></i> สถานที่จัดเก็บหลัก
+              </div>
+              <div id="eqDetailLocation" class="detail-field-value">-</div>
+            </div>
+
+            <div class="detail-field-card" style="grid-column: 1 / -1;">
+              <div class="detail-field-icon-label">
+                <i class="icon-credit-card"></i> หมวดเงินงบประมาณจัดซื้อ
+              </div>
+              <div id="eqDetailFundingSource" class="detail-field-value">-</div>
+            </div>
+
+            <div class="detail-field-card">
+              <div class="detail-field-icon-label">
+                <i class="icon-truck"></i> บริษัทผู้ขาย
+              </div>
+              <div id="eqDetailVendor" class="detail-field-value" style="font-size: 0.85rem;">-</div>
+            </div>
+
+            <div class="detail-field-card">
+              <div class="detail-field-icon-label">
+                <i class="icon-phone"></i> ผู้แทนขาย (เบอร์โทร)
+              </div>
+              <div id="eqDetailVendorRep" class="detail-field-value" style="font-size: 0.85rem;">-</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+          <div class="eq-detail-label" style="margin-bottom: 8px;"><i class="icon-history"></i> ประวัติการยืมใช้งานล่าสุด</div>
+          <div id="eqDetailHistoryList" class="eq-detail-history-list" style="max-height: 160px;">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div class="eq-detail-label" style="margin-bottom: 0;"><i class="icon-wrench"></i> ประวัติการซ่อมบำรุง / PM</div>
+            <button id="btnDetailAddMaintenance" class="btn btn-primary btn-sm admin-only-btn" style="padding: 4px 8px; font-size: 0.75rem;"><i class="icon-plus"></i> เพิ่มประวัติซ่อม/PM</button>
+          </div>
+          <div id="eqDetailMaintenanceList" class="eq-detail-history-list" style="max-height: 160px;">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div id="eqDetailAdminActions" style="display: flex; gap: 8px;"></div>
+        <button type="button" class="btn btn-secondary btn-close-modal">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Borrow Log Detail Modal (Clickable borrow logs row popup) -->
+  <div id="borrowDetailModal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 600px;">
+      <div class="modal-header" style="background-color: var(--primary); border-bottom: 2px solid var(--accent);">
+        <h3 class="modal-title" style="color: var(--accent); font-weight: 700;">รายละเอียดการยืม-คืนครุภัณฑ์</h3>
+        <button class="btn-close-modal" style="color: var(--accent);"><i class="icon-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="borrow-detail-content" style="display: flex; flex-direction: column; gap: 16px;">
+          
+          <!-- Equipment Info Card -->
+          <div style="background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; display: flex; gap: 16px; align-items: center;">
+            <img id="borrowDetailEqImage" src="" alt="Eq Photo" onerror="this.src='https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=150&auto=format&fit=crop'" style="width: 70px; height: 70px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <div style="flex: 1; min-width: 0;">
+              <div class="detail-field-icon-label" style="margin-bottom: 2px;"><i class="icon-package"></i> ข้อมูลครุภัณฑ์ / อุปกรณ์</div>
+              <strong id="borrowDetailEqName" style="color: var(--primary); font-size: 1rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</strong>
+              <span id="borrowDetailEqId" style="font-family: monospace; font-size: 0.8rem; color: var(--text-secondary); font-weight: 600;">-</span>
+            </div>
+          </div>
+
+          <!-- User Info Card -->
+          <div style="background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; display: flex; gap: 16px; align-items: center;">
+            <img id="borrowDetailUserAvatar" src="" alt="User Avatar" class="user-avatar-img" style="width: 50px; height: 50px; border-width: 2px;">
+            <div style="flex: 1;">
+              <div class="detail-field-icon-label" style="margin-bottom: 2px;"><i class="icon-user"></i> ผู้ทำรายการยืม</div>
+              <strong id="borrowDetailUserName" style="color: var(--text-primary); font-size: 0.95rem;">-</strong>
+              <span id="borrowDetailUserDept" style="font-size: 0.8rem; color: var(--text-secondary); display: block;">-</span>
+              <span id="borrowDetailUserContact" style="font-size: 0.75rem; color: var(--text-light); display: block;">-</span>
+            </div>
+          </div>
+
+          <!-- Transaction dates & status Grid -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="detail-field-card">
+              <div class="detail-field-icon-label"><i class="icon-calendar"></i> วันที่ยืม</div>
+              <div id="borrowDetailDate" class="detail-field-value">-</div>
+            </div>
+            <div class="detail-field-card">
+              <div class="detail-field-icon-label"><i class="icon-calendar"></i> กำหนดส่งคืน</div>
+              <div id="borrowDetailExpectedReturnDate" class="detail-field-value">-</div>
+            </div>
+            <div class="detail-field-card">
+              <div class="detail-field-icon-label"><i class="icon-calendar"></i> วันที่ส่งคืนจริง</div>
+              <div id="borrowDetailActualReturnDate" class="detail-field-value" style="color: var(--success);">-</div>
+            </div>
+            <div class="detail-field-card">
+              <div class="detail-field-icon-label"><i class="icon-activity"></i> Status</div>
+              <div style="margin-top: 4px;"><span id="borrowDetailStatusBadge" class="badge">กำลังยืม</span></div>
+            </div>
+          </div>
+
+          <!-- Borrow purpose -->
+          <div class="detail-field-card" style="width: 100%;">
+            <div class="detail-field-icon-label"><i class="icon-file-text"></i> วัตถุประสงค์ในการยืม</div>
+            <div id="borrowDetailPurpose" style="font-size: 0.9rem; color: var(--text-primary); font-weight: 500; margin-top: 4px;">-</div>
+          </div>
+
+          <!-- Notes -->
+          <div class="detail-field-card" style="width: 100%;">
+            <div class="detail-field-icon-label"><i class="icon-alert-circle"></i> หมายเหตุ / บันทึกการส่งคืน</div>
+            <div id="borrowDetailNotes" style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; white-space: pre-wrap;">-</div>
+          </div>
+
+          <!-- Admin quick return action button -->
+          <div id="adminReturnActionArea" style="display: none; margin-top: 8px;">
+            <button id="btnAdminReturnEquipment" class="btn btn-warning" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600;">
+              <i class="icon-arrow-down-left"></i> ดำเนินการรับคืนอุปกรณ์
+            </button>
+          </div>
+
+          <!-- Admin approval action area -->
+          <div id="adminApprovalActionArea" style="display: none; margin-top: 12px; display: flex; gap: 12px;">
+            <button id="btnAdminApprove" class="btn btn-primary" style="flex: 1; font-weight: 600;"><i class="icon-check"></i> อนุมัติ</button>
+            <button id="btnAdminReject" class="btn btn-danger" style="flex: 1; font-weight: 600;"><i class="icon-x"></i> ปฏิเสธ</button>
+          </div>
+
+          <!-- User return request button area -->
+          <div id="userReturnActionArea" style="display: none; margin-top: 12px;">
+            <button id="btnUserReturnEquipment" class="btn btn-warning" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600;">
+              <i class="icon-arrow-down-left"></i> ส่งคืนครุภัณฑ์
+            </button>
+          </div>
+
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-close-modal">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Scanner Modal -->
+  <div id="qrScannerModal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 450px;">
+      <div class="modal-header" style="background-color: var(--primary); border-bottom: 2px solid var(--accent);">
+        <h3 class="modal-title" style="color: var(--accent); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <i class="icon-qr-code"></i> สแกน QR Code ครุภัณฑ์
+        </h3>
+        <button class="btn-close-modal" id="btnCloseQRScannerModal" style="color: var(--accent);"><i class="icon-x"></i></button>
+      </div>
+      <div class="modal-body text-center" style="padding: 24px;">
+        <div id="qrReader" style="width: 100%; min-height: 250px; background: #000; border-radius: var(--radius-md); overflow: hidden; margin-bottom: 16px;"></div>
+        <span style="font-size: 0.85rem; color: var(--text-secondary);">กรุณาจัดวาง QR Code ของครุภัณฑ์ให้อยู่ในกรอบกล้อง</span>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-close-modal" id="btnCancelQRScanner">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Maintenance Entry Modal -->
+  <div id="maintenanceModal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 500px;">
+      <div class="modal-header" style="background-color: var(--primary); border-bottom: 2px solid var(--accent);">
+        <h3 class="modal-title" style="color: var(--accent); font-weight: 700;"><i class="icon-wrench"></i> บันทึกประวัติการบำรุงรักษา / ส่งซ่อม</h3>
+        <button class="btn-close-modal" style="color: var(--accent);"><i class="icon-x"></i></button>
+      </div>
+      <form id="maintenanceForm">
+        <input type="hidden" id="maintenanceFormEqId">
+        <div class="modal-body">
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label for="maintenanceFormType" class="form-label">ประเภทการดำเนินการ</label>
+            <select id="maintenanceFormType" class="form-control" required>
+              <option value="ส่งซ่อม">ส่งซ่อม (Repair)</option>
+              <option value="บำรุงรักษา">บำรุงรักษา (PM)</option>
+            </select>
+          </div>
+          
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label for="maintenanceFormSymptom" class="form-label">รายละเอียดอาการชำรุด / การตรวจสอบ</label>
+            <textarea id="maintenanceFormSymptom" class="form-control" rows="2" placeholder="เช่น อุปกรณ์เปิดไม่ติด หรือ สอบเทียบประจำปี" required></textarea>
+          </div>
+          
+          <div class="form-grid" style="margin-bottom: 16px;">
+            <div class="form-group">
+              <label for="maintenanceFormCompany" class="form-label">บริษัทผู้รับซ่อม / ดำเนินการ</label>
+              <input type="text" id="maintenanceFormCompany" class="form-control" placeholder="เช่น บริษัท เมดิคอล ซัพพลาย จำกัด" required>
+            </div>
+            <div class="form-group">
+              <label for="maintenanceFormCost" class="form-label">ค่าใช้จ่าย (บาท)</label>
+              <input type="number" id="maintenanceFormCost" class="form-control" placeholder="ระบุค่าใช้จ่าย (0 หากเคลมประกัน)" required>
+            </div>
+          </div>
+          
+          <div class="form-grid" style="margin-bottom: 16px;">
+            <div class="form-group">
+              <label for="maintenanceFormDate" class="form-label">วันที่ดำเนินการ</label>
+              <input type="date" id="maintenanceFormDate" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="maintenanceFormNextDueDate" class="form-label">วันกำหนดบำรุงรักษาครั้งถัดไป (PM)</label>
+              <input type="date" id="maintenanceFormNextDueDate" class="form-control">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary"><i class="icon-save"></i> บันทึกรายการ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Advanced Analytics Modal -->
+  <div id="analyticsModal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 800px; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="modal-header" style="background-color: var(--primary); border-bottom: 2px solid var(--accent);">
+        <h3 class="modal-title" style="color: var(--accent); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <i class="icon-pie-chart"></i> รายงานสถิติและวิเคราะห์ข้อมูลเชิงลึกสำหรับผู้บริหาร
+        </h3>
+        <button class="btn-close-modal" style="color: var(--accent);"><i class="icon-x"></i></button>
+      </div>
+      <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 24px;">
+        <!-- 1. Utilization Rate Section -->
+        <div>
+          <h4 style="color: var(--primary); font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="icon-activity"></i> 1. อัตราการยืมใช้งานครุภัณฑ์ (Utilization & Frequency)
+          </h4>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead style="background-color: var(--accent) !important; color: #0f172a !important;">
+                <tr>
+                  <th>รหัสครุภัณฑ์</th>
+                  <th>ชื่อครุภัณฑ์</th>
+                  <th>จำนวนครั้งที่ถูกยืม</th>
+                  <th>ระยะเวลาเฉลี่ย (วัน)</th>
+                  <th>ราคาจัดซื้อ</th>
+                  <th>ค่าเสื่อมสะสม</th>
+                  <th>มูลค่าคงเหลือ</th>
+                  <th>สถานะปัจจุบัน</th>
+                </tr>
+              </thead>
+              <tbody id="analyticsUtilizationTableBody">
+                <!-- Loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- 2. Depreciation Section -->
+        <div>
+          <h4 style="color: var(--primary); font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="icon-banknote"></i> 2. สรุปมูลค่าพัสดุและค่าเสื่อมราคาแยกตามแหล่งทุน (Depreciation by Funding Source)
+          </h4>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead style="background-color: var(--accent) !important; color: #0f172a !important;">
+                <tr>
+                  <th>แหล่งเงินงบประมาณ</th>
+                  <th>จำนวนชิ้น</th>
+                  <th>มูลค่าจัดซื้อรวม</th>
+                  <th>ค่าเสื่อมสะสม (20% ต่อปี)</th>
+                  <th>มูลค่าสุทธิคงเหลือ</th>
+                </tr>
+              </thead>
+              <tbody id="analyticsDepreciationTableBody">
+                <!-- Loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+          <span style="font-size: 0.72rem; color: var(--text-light); display: block; margin-top: 6px;">
+            *หมายเหตุ: การคำนวณค่าเสื่อมราคาใช้วิธีเส้นตรง (Straight-Line Method) กำหนดอายุการใช้งานตั้งต้นของอุปกรณ์ทางการแพทย์ที่ 5 ปี (ค่าเสื่อมราคา 20% ต่อปีนับจากปีงบประมาณที่ซื้อ)
+          </span>
+        </div>
+      </div>
+      <div class="modal-footer" style="background: var(--bg-primary); border-top: 1px solid var(--border-color); display: flex; gap: 12px; justify-content: flex-end;">
+        <button type="button" id="btnExportAnalyticsCSV" class="btn btn-primary"><i class="icon-download"></i> ดาวน์โหลดรายงาน (Excel)</button>
+        <button type="button" class="btn btn-secondary btn-close-modal">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       JAVASCRIPT DRIVERS
+       ========================================== -->
+  <script src="js/database.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
