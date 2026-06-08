@@ -616,7 +616,7 @@
       card.className = 'equipment-card';
       card.innerHTML = `
         <div class="equipment-image-container" style="cursor: pointer;">
-          <img class="equipment-image" src="${eq.imageUrl}" alt="${eq.name}" onerror="this.src='https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=300&auto=format&fit=crop'">
+          <img class="equipment-image" src="${eq.imageUrl}" alt="${eq.name}" onerror="this.src='Logo/budtec_logo_notext.png'">
           <span class="equipment-status-badge ${statusClass}">${eq.status}</span>
           <span class="equipment-id-tag">${eq.id}</span>
         </div>
@@ -798,7 +798,7 @@
 
     populateFormDropdowns();
 
-    selectedImageUrl = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=300&auto=format&fit=crop';
+    selectedImageUrl = 'Logo/budtec_logo_notext.png';
     qAll('.preset-img-option').forEach(el => el.classList.remove('selected'));
     q('.preset-img-option').classList.add('selected'); // default
 
@@ -1166,7 +1166,7 @@
     // Populate Equipment details
     $('borrowDetailEqName').textContent = eq ? eq.name : 'ไม่พบข้อมูลครุภัณฑ์';
     $('borrowDetailEqId').textContent = `รหัสครุภัณฑ์: ${tx.equipmentId}`;
-    $('borrowDetailEqImage').src = eq ? eq.imageUrl : 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=150&auto=format&fit=crop';
+    $('borrowDetailEqImage').src = eq && eq.imageUrl ? eq.imageUrl : 'Logo/budtec_logo_notext.png';
 
     // Populate User details
     $('borrowDetailUserName').textContent = user ? user.name : 'ไม่ทราบชื่อผู้ยืม';

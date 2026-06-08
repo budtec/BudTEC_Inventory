@@ -790,7 +790,7 @@
         locationId: Number(eqData.locationId) || null,
         manualUrl: eqData.manualUrl || '',
         status: eqData.status || 'พร้อมใช้งาน',
-        imageUrl: eqData.imageUrl || 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=300&auto=format&fit=crop'
+        imageUrl: eqData.imageUrl || 'Logo/budtec_logo_notext.png'
       };
       data.equipment.push(newEq);
       saveLocalBackup();
