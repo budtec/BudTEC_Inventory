@@ -231,6 +231,7 @@
   };
 
   const parseId = (val) => {
+    if (val === null || val === undefined || val === '') return null;
     const num = Number(val);
     return isNaN(num) ? val : num;
   };
@@ -783,11 +784,11 @@
         assetNumber: eqData.assetNumber || '',
         name: eqData.name || '',
         price: Number(eqData.price) || 0,
-        vendorId: Number(eqData.vendorId) || null,
+        vendorId: parseId(eqData.vendorId),
         fiscalYear: Number(eqData.fiscalYear) || new Date().getFullYear() + 543,
-        fundingSourceId: Number(eqData.fundingSourceId) || null,
-        categoryId: Number(eqData.categoryId) || null,
-        locationId: Number(eqData.locationId) || null,
+        fundingSourceId: parseId(eqData.fundingSourceId),
+        categoryId: parseId(eqData.categoryId),
+        locationId: parseId(eqData.locationId),
         manualUrl: eqData.manualUrl || '',
         status: eqData.status || 'พร้อมใช้งาน',
         imageUrl: eqData.imageUrl || 'Logo/budtec_logo_notext.png'
@@ -806,11 +807,11 @@
           assetNumber: eqData.assetNumber || '',
           name: eqData.name || '',
           price: Number(eqData.price) || 0,
-          vendorId: Number(eqData.vendorId) || null,
+          vendorId: parseId(eqData.vendorId),
           fiscalYear: Number(eqData.fiscalYear) || data.equipment[idx].fiscalYear,
-          fundingSourceId: Number(eqData.fundingSourceId) || null,
-          categoryId: Number(eqData.categoryId) || null,
-          locationId: Number(eqData.locationId) || null,
+          fundingSourceId: parseId(eqData.fundingSourceId),
+          categoryId: parseId(eqData.categoryId),
+          locationId: parseId(eqData.locationId),
           manualUrl: eqData.manualUrl !== undefined ? eqData.manualUrl : data.equipment[idx].manualUrl,
           status: eqData.status || data.equipment[idx].status,
           imageUrl: eqData.imageUrl || data.equipment[idx].imageUrl

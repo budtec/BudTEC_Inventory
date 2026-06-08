@@ -139,7 +139,9 @@ button {
 .app-container {
   display: flex;
   height: 100vh;
-  width: 100vw;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   position: relative;
 }
 
@@ -717,13 +719,17 @@ body:not(.dark-mode) .moon-icon {
 .equipment-image-container {
   height: 180px;
   position: relative;
-  background-color: #f1f5f9;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
 }
 
 .equipment-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .equipment-status-badge {
@@ -1328,7 +1334,9 @@ body:not(.dark-mode) .moon-icon {
 .eq-detail-image {
   width: 100%;
   height: 260px;
-  object-fit: cover;
+  object-fit: contain;
+  background-color: #ffffff;
+  padding: 8px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
@@ -1678,8 +1686,9 @@ body.dark-mode .badge-info {
   }
 
   .main-wrapper {
-    width: 100vw;
-    max-width: 100vw;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   .topbar {
@@ -1714,7 +1723,7 @@ body.dark-mode .badge-info {
     gap: 8px;
   }
 
-  .filter-select, .btn {
+  .filter-select, .filter-controls-group .btn {
     width: 100%;
     justify-content: center;
   }
@@ -1823,5 +1832,28 @@ body.dark-mode .badge-info {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
+  }
+
+  /* Mobile layout optimizations to prevent overflow */
+  .content-body {
+    padding: 16px 12px;
+  }
+
+  .controls-panel {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .equipment-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .chart-card {
+    padding: 16px;
+  }
+  
+  .login-box {
+    padding: 24px 16px;
   }
 }
