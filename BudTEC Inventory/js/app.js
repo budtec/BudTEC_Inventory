@@ -932,7 +932,9 @@
           saveBtn.innerHTML = '<i class="icon-loader animate-spin"></i> กำลังอัปโหลดรูปภาพ...';
         }
         try {
-          selectedImageUrl = await window.uploadFileToGoogleDrive(file, 'equipment');
+          const eqId = $('eqFormId').value || db.generateNextEquipmentId();
+          const customFileName = `${eqId}.${file.name}`;
+          selectedImageUrl = await window.uploadFileToGoogleDrive(file, 'equipment', customFileName);
           qAll('.preset-img-option').forEach(o => o.classList.remove('selected'));
         } catch (err) {
           alert('อัปโหลดรูปภาพล้มเหลว: ' + err.message);
@@ -963,7 +965,9 @@
           saveBtn.innerHTML = '<i class="icon-loader animate-spin"></i> กำลังอัปโหลดคู่มือ...';
         }
         try {
-          const manualUrl = await window.uploadFileToGoogleDrive(file, 'manuals');
+          const eqId = $('eqFormId').value || db.generateNextEquipmentId();
+          const customFileName = `${eqId}.${file.name}`;
+          const manualUrl = await window.uploadFileToGoogleDrive(file, 'manuals', customFileName);
           $('eqFormManualUrl').value = manualUrl;
         } catch (err) {
           alert('อัปโหลดคู่มือล้มเหลว: ' + err.message);
@@ -2369,6 +2373,12 @@
     }
   }
 
+  function openLightbox(src) {
+    if (!src || src.includes('budtec_logo_notext.png')) return;
+    $('lightboxImage').src = src;
+    $('imageLightboxModal').classList.add('active');
+  }
+
   function setupEventListeners() {
     // Sidebar Hamburger Toggle for Mobile
     const btnToggleSidebar = $('btnToggleSidebar');
@@ -2491,7 +2501,9 @@
             regBtn.innerHTML = 'กำลังอัปโหลดรูปภาพ...';
           }
           try {
-            const avatarUrl = await window.uploadFileToGoogleDrive(file, 'avatars');
+            const username = $('registerUsername').value.trim() || 'temp_user';
+            const customFileName = `${username}.${file.name}`;
+            const avatarUrl = await window.uploadFileToGoogleDrive(file, 'avatars', customFileName);
             $('registerAvatarPreview').src = avatarUrl;
             $('registerAvatarUrl').value = avatarUrl;
           } catch (err) {
@@ -2539,6 +2551,22 @@
       renderEquipment();
     });
 
+    // Image zoom-in lightbox event listeners
+    $('eqDetailImage').addEventListener('click', () => {
+      openLightbox($('eqDetailImage').src);
+    });
+    $('borrowDetailEqImage').addEventListener('click', () => {
+      openLightbox($('borrowDetailEqImage').src);
+    });
+    $('btnCloseLightbox').addEventListener('click', () => {
+      closeModal($('imageLightboxModal'));
+    });
+    $('imageLightboxModal').addEventListener('click', (e) => {
+      if (e.target === $('imageLightboxModal')) {
+        closeModal($('imageLightboxModal'));
+      }
+    });
+
     // Admin Equipment Controls
     $('btnExportEquipment').addEventListener('click', downloadEquipmentCSV);
     $('btnAddEquipment').addEventListener('click', () => showEquipmentForm(null));
@@ -2568,7 +2596,9 @@
             saveBtn.innerHTML = 'กำลังอัปโหลดรูป...';
           }
           try {
-            const avatarUrl = await window.uploadFileToGoogleDrive(file, 'avatars');
+            const userId = currentUser ? currentUser.id : 'temp';
+            const customFileName = `${userId}.${file.name}`;
+            const avatarUrl = await window.uploadFileToGoogleDrive(file, 'avatars', customFileName);
             $('profileAvatarPreview').src = avatarUrl;
             $('btnDeleteProfileAvatar').style.display = 'block';
           } catch (err) {
@@ -2608,7 +2638,9 @@
             saveBtn.innerHTML = 'กำลังอัปโหลดรูป...';
           }
           try {
-            const avatarUrl = await window.uploadFileToGoogleDrive(file, 'avatars');
+            const userId = $('userFormId').value || $('userFormUsername').value.trim() || 'temp_user';
+            const customFileName = `${userId}.${file.name}`;
+            const avatarUrl = await window.uploadFileToGoogleDrive(file, 'avatars', customFileName);
             $('userFormAvatarPreview').src = avatarUrl;
             $('userFormAvatarUrl').value = avatarUrl;
             $('btnDeleteUserFormAvatar').style.display = 'block';

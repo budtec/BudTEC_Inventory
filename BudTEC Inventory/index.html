@@ -1100,7 +1100,7 @@
         <div class="eq-detail-grid">
           <!-- Left side (Media, Status, Actions) -->
           <div style="display: flex; flex-direction: column; gap: 16px;">
-            <img id="eqDetailImage" class="eq-detail-image" src="" alt="Equipment Image" onerror="this.src='Logo/budtec_logo_notext.png'">
+            <img id="eqDetailImage" class="eq-detail-image" src="" alt="Equipment Image" onerror="this.src='Logo/budtec_logo_notext.png'" style="cursor: zoom-in;">
             
             <div style="background-color: var(--bg-primary); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
               <div class="detail-field-icon-label" style="margin-bottom: 6px;">
@@ -1228,7 +1228,7 @@
           
           <!-- Equipment Info Card -->
           <div style="background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; display: flex; gap: 16px; align-items: center;">
-            <img id="borrowDetailEqImage" src="" alt="Eq Photo" onerror="this.src='Logo/budtec_logo_notext.png'" style="width: 70px; height: 70px; object-fit: contain; background-color: #ffffff; padding: 4px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <img id="borrowDetailEqImage" src="" alt="Eq Photo" onerror="this.src='Logo/budtec_logo_notext.png'" style="width: 70px; height: 70px; object-fit: contain; background-color: #ffffff; padding: 4px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: zoom-in;">
             <div style="flex: 1; min-width: 0;">
               <div class="detail-field-icon-label" style="margin-bottom: 2px;"><i class="icon-package"></i> ข้อมูลครุภัณฑ์ / อุปกรณ์</div>
               <strong id="borrowDetailEqName" style="color: var(--primary); font-size: 1rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</strong>
@@ -1445,6 +1445,16 @@
         <button type="button" id="btnExportAnalyticsCSV" class="btn btn-primary"><i class="icon-download"></i> ดาวน์โหลดรายงาน (Excel)</button>
         <button type="button" class="btn btn-secondary btn-close-modal">ปิดหน้าต่าง</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Image Lightbox Modal (Premium Dark View) -->
+  <div id="imageLightboxModal" class="modal-overlay" style="background-color: rgba(7, 10, 19, 0.95); z-index: 3000;">
+    <button id="btnCloseLightbox" style="position: absolute; top: 24px; right: 24px; z-index: 3001; color: #fff; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; transition: background var(--transition-fast);">
+      <i class="icon-x"></i>
+    </button>
+    <div style="max-width: 95vw; max-height: 95vh; display: flex; align-items: center; justify-content: center;">
+      <img id="lightboxImage" src="" alt="Full Size Image" style="max-width: 100%; max-height: 90vh; object-fit: contain; border-radius: var(--radius-md); box-shadow: 0 20px 50px rgba(0,0,0,0.8); border: 2px solid rgba(255,255,255,0.08);">
     </div>
   </div>
 

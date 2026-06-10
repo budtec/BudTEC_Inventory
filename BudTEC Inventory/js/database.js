@@ -414,7 +414,7 @@
   }
 
   // File Upload to Google Drive via GAS helper
-  global.uploadFileToGoogleDrive = function(file, folderName) {
+  global.uploadFileToGoogleDrive = function(file, folderName, customFileName = null) {
     return new Promise((resolve, reject) => {
       if (!useGoogleSheets) {
         // Fallback to base64 encoding (demo mode)
@@ -437,7 +437,7 @@
             action: "uploadFile",
             data: {
               base64: base64Data,
-              fileName: file.name,
+              fileName: customFileName || file.name,
               folderName: folderName // 'avatars', 'equipment', 'manuals'
             }
           })
