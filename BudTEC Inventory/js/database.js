@@ -792,7 +792,7 @@
       u.approved = true;
       saveLocalBackup();
       triggerDBUpdateEvent();
-      postToGAS("approveUser", { id: idVal, approved: true });
+      postToGAS("approveUser", u);
       return { success: true, user: u };
     },
     rejectUser(id) {

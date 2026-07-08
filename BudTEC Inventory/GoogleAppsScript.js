@@ -146,16 +146,23 @@ function writeRow(sheetName, item, idKey) {
   const idColIndex = headers.indexOf(idKey);
   
   let rowIndex = -1;
+  let existingRow = [];
   for (let i = 1; i < data.length; i++) {
     if (String(data[i][idColIndex]) === String(idValue)) {
       rowIndex = i + 1;
+      existingRow = data[i];
       break;
     }
   }
   
-  const rowValues = headers.map(header => {
+  const rowValues = headers.map((header, index) => {
     let val = item[header];
-    if (val === undefined) return "";
+    if (val === undefined) {
+      if (rowIndex !== -1 && existingRow[index] !== undefined) {
+        return existingRow[index];
+      }
+      return "";
+    }
     return val;
   });
   
