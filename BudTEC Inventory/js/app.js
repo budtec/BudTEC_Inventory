@@ -652,7 +652,7 @@
                  <button class="btn btn-sm btn-delete-eq" data-id="${eq.id}"><i class="icon-trash-2"></i> ลบ</button>`
               : ''
             }
-            ${eq.status === 'พร้อมใช้งาน' 
+            ${!['ชำรุด', 'ส่งซ่อม', 'สูญหาย'].includes(eq.status)
               ? `<button class="btn btn-primary btn-sm btn-borrow-eq" data-id="${eq.id}"><i class="icon-arrow-up-right"></i> ยืม</button>` 
               : ''
             }
@@ -1017,6 +1017,36 @@
     
     $('borrowPurpose').value = '';
     $('borrowNotes').value = '';
+
+    // Populate and show booked dates
+    const txs = db.getTransactions().filter(tx => 
+      tx.equipmentId === eq.id && 
+      ['รออนุมัติยืม', 'ถูกยืม', 'รออนุมัติคืน'].includes(tx.status)
+    );
+
+    const container = $('borrowBookedDatesContainer');
+    const list = $('borrowBookedDatesList');
+
+    if (container && list) {
+      if (txs.length > 0) {
+        list.innerHTML = '';
+        txs.forEach(tx => {
+          const li = document.createElement('li');
+          const borrower = db.getUsers().find(u => u.id === tx.userId);
+          const name = borrower ? borrower.name : 'ผู้ใช้';
+          let statusLabel = '';
+          if (tx.status === 'รออนุมัติยืม') statusLabel = '(รออนุมัติ)';
+          else if (tx.status === 'ถูกยืม') statusLabel = '(ยืมใช้งานอยู่)';
+          else if (tx.status === 'รออนุมัติคืน') statusLabel = '(รออนุมัติคืน)';
+
+          li.innerHTML = `<strong>${formatThaiDate(tx.borrowDate)} ถึง ${formatThaiDate(tx.expectedReturnDate)}</strong> - ${name} ${statusLabel}`;
+          list.appendChild(li);
+        });
+        container.style.display = 'block';
+      } else {
+        container.style.display = 'none';
+      }
+    }
 
     openModal($('borrowModal'));
   }

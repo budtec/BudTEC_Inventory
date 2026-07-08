@@ -243,6 +243,23 @@
     return `${year}-${month}-${day}`;
   };
 
+  const formatThaiDate = (dateStr) => {
+    if (!dateStr) return '-';
+    try {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const d = parseInt(parts[2], 10);
+        const m = parseInt(parts[1], 10);
+        const y = parseInt(parts[0], 10) + 543;
+        const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+        return `${d} ${months[m - 1]} ${y}`;
+      }
+      return dateStr;
+    } catch(e) {
+      return dateStr;
+    }
+  };
+
   let updateTimeout = null;
   function triggerDBUpdateEvent() {
     if (updateTimeout) clearTimeout(updateTimeout);
@@ -347,6 +364,9 @@
       seed();
     }
 
+    // Dynamic initial update of equipment statuses
+    db.updateEquipmentStatusesForToday();
+
     if (useGoogleSheets) {
       // Async fetch to sync with Google Sheet
       syncWithGoogleSheets();
@@ -384,6 +404,7 @@
             data.users = usersBackup;
           }
           sanitizeDatabaseImageUrls();
+          db.updateEquipmentStatusesForToday();
           saveLocalBackup();
           console.log("BudTEC Inventory: Google Sheets sync complete.");
           triggerDBUpdateEvent();
@@ -473,6 +494,72 @@
       seed();
       triggerDBUpdateEvent();
       return true;
+    },
+
+    checkBookingOverlap(equipmentId, startDate, endDate, excludeTxId = null) {
+      const activeTxs = data.transactions.filter(tx => 
+        tx.equipmentId === equipmentId &&
+        tx.id !== excludeTxId &&
+        ['รออนุมัติยืม', 'ถูกยืม', 'รออนุมัติคืน'].includes(tx.status)
+      );
+      
+      for (const tx of activeTxs) {
+        const start = tx.borrowDate;
+        const end = tx.expectedReturnDate;
+        if (start && end) {
+          if (startDate <= end && start <= endDate) {
+            return {
+              overlap: true,
+              transaction: tx
+            };
+          }
+        }
+      }
+      return { overlap: false };
+    },
+
+    getEquipmentStatusAtDate(equipmentId, dateStr) {
+      const eq = data.equipment.find(x => x.id === equipmentId);
+      if (!eq) return 'ไม่พบครุภัณฑ์';
+      if (eq.status === 'ชำรุด' || eq.status === 'ส่งซ่อม' || eq.status === 'สูญหาย') {
+        return eq.status;
+      }
+      
+      const activeTxs = data.transactions.filter(tx => 
+        tx.equipmentId === equipmentId && 
+        ['รออนุมัติยืม', 'ถูกยืม', 'รออนุมัติคืน'].includes(tx.status)
+      );
+      
+      for (const tx of activeTxs) {
+        const start = tx.borrowDate;
+        const end = tx.expectedReturnDate;
+        if (start && end && dateStr >= start && dateStr <= end) {
+          return tx.status;
+        }
+      }
+      
+      return 'พร้อมใช้งาน';
+    },
+
+    updateEquipmentStatusesForToday() {
+      const todayStr = getLocalYMD();
+      let changed = false;
+      
+      data.equipment.forEach(eq => {
+        if (eq.status === 'พร้อมใช้งาน' || eq.status === 'รออนุมัติยืม' || eq.status === 'ถูกยืม' || eq.status === 'รออนุมัติคืน') {
+          const computedStatus = this.getEquipmentStatusAtDate(eq.id, todayStr);
+          if (eq.status !== computedStatus) {
+            eq.status = computedStatus;
+            changed = true;
+            postToGAS("updateEquipment", eq);
+          }
+        }
+      });
+      
+      if (changed) {
+        saveLocalBackup();
+        triggerDBUpdateEvent();
+      }
     },
 
     // --- FUNDING SOURCES ---
@@ -801,6 +888,7 @@
         imageUrl: eqData.imageUrl || 'Logo/budtec_logo_notext.png'
       };
       data.equipment.push(newEq);
+      this.updateEquipmentStatusesForToday();
       saveLocalBackup();
       triggerDBUpdateEvent();
       postToGAS("addEquipment", newEq);
@@ -823,6 +911,7 @@
           status: eqData.status || data.equipment[idx].status,
           imageUrl: eqData.imageUrl || data.equipment[idx].imageUrl
         };
+        this.updateEquipmentStatusesForToday();
         saveLocalBackup();
         triggerDBUpdateEvent();
         postToGAS("updateEquipment", data.equipment[idx]);
@@ -859,10 +948,23 @@
     borrowEquipment(equipmentId, userId, borrowDetails) {
       const eq = this.getEquipmentById(equipmentId);
       if (!eq) return { success: false, message: 'ไม่พบครุภัณฑ์ที่ต้องการยืม' };
-      if (eq.status !== 'พร้อมใช้งาน') return { success: false, message: `ครุภัณฑ์นี้ไม่พร้อมใช้งาน (สถานะปัจจุบัน: ${eq.status})` };
+      if (eq.status === 'ชำรุด' || eq.status === 'ส่งซ่อม' || eq.status === 'สูญหาย') {
+        return { success: false, message: `ครุภัณฑ์นี้อยู่ในสถานะ ${eq.status} ไม่สามารถยืมได้` };
+      }
 
-      eq.status = 'รออนุมัติยืม';
-      this.updateEquipment(equipmentId, eq);
+      const reqStart = borrowDetails.borrowDate || getLocalYMD();
+      const reqEnd = borrowDetails.expectedReturnDate || '';
+      if (!reqEnd) {
+        return { success: false, message: 'กรุณาระบุกำหนดวันส่งคืน' };
+      }
+
+      // Check date range overlap
+      const overlapCheck = this.checkBookingOverlap(equipmentId, reqStart, reqEnd);
+      if (overlapCheck.overlap) {
+        const otherTx = overlapCheck.transaction;
+        const msg = `ขออภัย ครุภัณฑ์นี้ถูกจองหรือใช้งานแล้วในช่วงเวลาดังกล่าว (${formatThaiDate(otherTx.borrowDate)} ถึง ${formatThaiDate(otherTx.expectedReturnDate)})`;
+        return { success: false, message: msg };
+      }
 
       const id = data.transactions.length > 0 ? Math.max(...data.transactions.map(x => (typeof x.id === 'number' ? x.id : 0))) + 1 : 1;
       const parsedUserId = parseId(userId);
@@ -870,8 +972,8 @@
         id,
         equipmentId,
         userId: parsedUserId,
-        borrowDate: borrowDetails.borrowDate || getLocalYMD(),
-        expectedReturnDate: borrowDetails.expectedReturnDate || '',
+        borrowDate: reqStart,
+        expectedReturnDate: reqEnd,
         actualReturnDate: '',
         purpose: borrowDetails.purpose || '',
         notes: borrowDetails.notes || '',
@@ -879,6 +981,10 @@
       };
 
       data.transactions.push(newTx);
+      
+      // Update equipment status for today dynamically
+      this.updateEquipmentStatusesForToday();
+      
       saveLocalBackup();
       triggerDBUpdateEvent();
       postToGAS("borrowEquipment", newTx);
@@ -890,15 +996,12 @@
 
       if (!tx) return { success: false, message: 'ไม่พบรายการยืม' };
 
-      if (eq) {
-        eq.status = 'รออนุมัติคืน';
-        this.updateEquipment(equipmentId, eq);
-      }
-
       tx.status = 'รออนุมัติคืน';
       tx.pendingReturnDate = returnDetails.returnDate || getLocalYMD();
       tx.pendingIsDamaged = !!returnDetails.isDamaged;
       tx.pendingNotes = returnDetails.notes || '';
+
+      this.updateEquipmentStatusesForToday();
 
       saveLocalBackup();
       triggerDBUpdateEvent();
@@ -912,9 +1015,8 @@
       if (!eq) return { success: false, message: 'ไม่พบครุภัณฑ์' };
 
       tx.status = 'ถูกยืม';
-      eq.status = 'ถูกยืม';
 
-      this.updateEquipment(tx.equipmentId, eq);
+      this.updateEquipmentStatusesForToday();
       saveLocalBackup();
       triggerDBUpdateEvent();
       postToGAS("approveBorrow", tx);
@@ -927,9 +1029,8 @@
       if (!eq) return { success: false, message: 'ไม่พบครุภัณฑ์' };
 
       tx.status = 'ปฏิเสธการยืม';
-      eq.status = 'พร้อมใช้งาน';
 
-      this.updateEquipment(tx.equipmentId, eq);
+      this.updateEquipmentStatusesForToday();
       saveLocalBackup();
       triggerDBUpdateEvent();
       postToGAS("rejectBorrow", tx);
@@ -947,14 +1048,17 @@
         tx.notes = tx.notes ? `${tx.notes} | คืน: ${tx.pendingNotes}` : `คืน: ${tx.pendingNotes}`;
       }
       
-      eq.status = tx.pendingIsDamaged ? 'ชำรุด' : 'พร้อมใช้งาน';
+      if (tx.pendingIsDamaged) {
+        eq.status = 'ชำรุด';
+        this.updateEquipment(tx.equipmentId, eq);
+      }
 
       // Clear pending fields
       delete tx.pendingReturnDate;
       delete tx.pendingIsDamaged;
       delete tx.pendingNotes;
 
-      this.updateEquipment(tx.equipmentId, eq);
+      this.updateEquipmentStatusesForToday();
       saveLocalBackup();
       triggerDBUpdateEvent();
       postToGAS("approveReturn", tx);
@@ -967,14 +1071,13 @@
       if (!eq) return { success: false, message: 'ไม่พบครุภัณฑ์' };
 
       tx.status = 'ถูกยืม';
-      eq.status = 'ถูกยืม';
 
       // Clear pending fields
       delete tx.pendingReturnDate;
       delete tx.pendingIsDamaged;
       delete tx.pendingNotes;
 
-      this.updateEquipment(tx.equipmentId, eq);
+      this.updateEquipmentStatusesForToday();
       saveLocalBackup();
       triggerDBUpdateEvent();
       postToGAS("rejectReturn", tx);
