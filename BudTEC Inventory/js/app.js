@@ -20,6 +20,14 @@
   const q = selector => document.querySelector(selector);
   const qAll = selector => document.querySelectorAll(selector);
 
+  // Helper to get local YYYY-MM-DD date string
+  const getLocalYMD = (d = new Date()) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Helper to parse IDs cleanly (numeric or alphanumeric)
   const parseId = val => {
     if (val === null || val === undefined || val === '') return null;
@@ -314,7 +322,7 @@
     $('dashStatDamaged').textContent = damagedCount;
 
     // Overdue items calculation
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalYMD();
     const overdueList = txList.filter(tx => tx.status === 'ถูกยืม' && tx.expectedReturnDate && tx.expectedReturnDate < todayStr);
     const overdueContainer = $('overdueWarningContainer');
     const overdueListEl = $('overdueItemsList');
@@ -742,7 +750,7 @@
     // Trigger download
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `BudTEC_Equipment_Inventory_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `BudTEC_Equipment_Inventory_${getLocalYMD()}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -1001,11 +1009,11 @@
 
     $('borrowEqId').value = eq.id;
     $('borrowTitle').textContent = `ยืนยันการยืม: [${eq.id}] ${eq.name}`;
-    $('borrowDate').value = new Date().toISOString().split('T')[0];
+    $('borrowDate').value = getLocalYMD();
     
     const nextWeek = new Date();
     nextWeek.setDate(nextWeek.getDate() + 7);
-    $('expectedReturnDate').value = nextWeek.toISOString().split('T')[0];
+    $('expectedReturnDate').value = getLocalYMD(nextWeek);
     
     $('borrowPurpose').value = '';
     $('borrowNotes').value = '';
@@ -1062,7 +1070,7 @@
     $('returnEqId').value = eq.id;
     $('returnTxId').value = tx.id;
     $('returnTitle').textContent = `ยืนยันการคืน: [${eq.id}] ${eq.name}`;
-    $('returnDate').value = new Date().toISOString().split('T')[0];
+    $('returnDate').value = getLocalYMD();
     $('returnIsDamaged').checked = false;
     $('returnNotes').value = '';
 
@@ -1367,6 +1375,17 @@
   function formatThaiDate(dateStr) {
     if (!dateStr) return '-';
     try {
+      // If it contains ISO timestamp parts like 'T' or 'Z', parse and display in local timezone
+      if (dateStr.includes('T') || dateStr.includes('Z')) {
+        const dObj = new Date(dateStr);
+        if (!isNaN(dObj.getTime())) {
+          const d = dObj.getDate();
+          const m = dObj.getMonth() + 1;
+          const y = dObj.getFullYear() + 543;
+          const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+          return `${d} ${months[m - 1]} ${y}`;
+        }
+      }
       const parts = dateStr.split('-');
       if (parts.length === 3) {
         const d = parseInt(parts[2], 10);
@@ -2746,7 +2765,7 @@
         
         $('maintenanceFormEqId').value = eqId;
         $('maintenanceForm').reset();
-        $('maintenanceFormDate').value = new Date().toISOString().split('T')[0];
+        $('maintenanceFormDate').value = getLocalYMD();
         
         closeModal($('equipmentDetailModal'));
         openModal($('maintenanceModal'));
@@ -3125,7 +3144,7 @@
 
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `BudTEC_Analytics_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `BudTEC_Analytics_Report_${getLocalYMD()}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();

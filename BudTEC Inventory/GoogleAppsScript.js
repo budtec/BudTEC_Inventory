@@ -119,11 +119,14 @@ function readSheet(sheetName) {
   if (data.length <= 1) return []; // Empty or only headers
   const headers = data[0];
   const rows = [];
+  const tz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
   for (let i = 1; i < data.length; i++) {
     const row = {};
     headers.forEach((header, index) => {
       let val = data[i][index];
-      if (val === "true" || val === true) val = true;
+      if (val instanceof Date) {
+        val = Utilities.formatDate(val, tz, "yyyy-MM-dd");
+      } else if (val === "true" || val === true) val = true;
       else if (val === "false" || val === false) val = false;
       row[header] = val;
     });

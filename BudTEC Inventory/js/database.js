@@ -236,6 +236,13 @@
     return isNaN(num) ? val : num;
   };
 
+  const getLocalYMD = (d = new Date()) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   let updateTimeout = null;
   function triggerDBUpdateEvent() {
     if (updateTimeout) clearTimeout(updateTimeout);
@@ -863,7 +870,7 @@
         id,
         equipmentId,
         userId: parsedUserId,
-        borrowDate: borrowDetails.borrowDate || new Date().toISOString().split('T')[0],
+        borrowDate: borrowDetails.borrowDate || getLocalYMD(),
         expectedReturnDate: borrowDetails.expectedReturnDate || '',
         actualReturnDate: '',
         purpose: borrowDetails.purpose || '',
@@ -889,7 +896,7 @@
       }
 
       tx.status = 'รออนุมัติคืน';
-      tx.pendingReturnDate = returnDetails.returnDate || new Date().toISOString().split('T')[0];
+      tx.pendingReturnDate = returnDetails.returnDate || getLocalYMD();
       tx.pendingIsDamaged = !!returnDetails.isDamaged;
       tx.pendingNotes = returnDetails.notes || '';
 
@@ -935,7 +942,7 @@
       if (!eq) return { success: false, message: 'ไม่พบครุภัณฑ์' };
 
       tx.status = 'คืนแล้ว';
-      tx.actualReturnDate = tx.pendingReturnDate || new Date().toISOString().split('T')[0];
+      tx.actualReturnDate = tx.pendingReturnDate || getLocalYMD();
       if (tx.pendingNotes) {
         tx.notes = tx.notes ? `${tx.notes} | คืน: ${tx.pendingNotes}` : `คืน: ${tx.pendingNotes}`;
       }
