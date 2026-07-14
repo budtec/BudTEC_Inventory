@@ -114,7 +114,7 @@
     }
 
     const user = db.getUserByUsername(username);
-    if (user && user.password === password) {
+    if (user && String(user.password) === String(password)) {
       if (user.approved === false) {
         showLoginError('บัญชีของคุณอยู่ระหว่างการรออนุมัติจากผู้ดูแลระบบ');
         return;

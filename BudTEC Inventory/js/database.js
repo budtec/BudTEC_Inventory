@@ -291,11 +291,20 @@
     if (data.users) {
       data.users.forEach(u => {
         if (u.avatarUrl) u.avatarUrl = fixGoogleDriveImageUrl(u.avatarUrl);
+        if (u.password !== undefined && u.password !== null) u.password = String(u.password);
+        if (u.username !== undefined && u.username !== null) u.username = String(u.username);
+        if (u.phone !== undefined && u.phone !== null) u.phone = String(u.phone);
+        if (u.name !== undefined && u.name !== null) u.name = String(u.name);
+        if (u.email !== undefined && u.email !== null) u.email = String(u.email);
+        if (u.department !== undefined && u.department !== null) u.department = String(u.department);
       });
     }
     if (data.equipment) {
       data.equipment.forEach(eq => {
         if (eq.imageUrl) eq.imageUrl = fixGoogleDriveImageUrl(eq.imageUrl);
+        if (eq.id !== undefined && eq.id !== null) eq.id = String(eq.id);
+        if (eq.assetNumber !== undefined && eq.assetNumber !== null) eq.assetNumber = String(eq.assetNumber);
+        if (eq.price !== undefined && eq.price !== null) eq.price = Number(eq.price) || 0;
       });
     }
   }
@@ -737,7 +746,8 @@
       return data.users.find(x => x.id === idVal) || null;
     },
     getUserByUsername(username) {
-      return data.users.find(x => x.username.toLowerCase() === username.toLowerCase()) || null;
+      if (!username) return null;
+      return data.users.find(x => x.username && x.username.toLowerCase() === username.toLowerCase()) || null;
     },
     addUser(userData) {
       if (this.getUserByUsername(userData.username)) {
@@ -815,13 +825,13 @@
         }
         data.users[idx] = {
           ...data.users[idx],
-          name: userData.name || '',
-          username: userData.username || data.users[idx].username,
-          password: userData.password || data.users[idx].password,
-          email: userData.email || '',
-          phone: userData.phone || '',
-          role: userData.role || data.users[idx].role,
-          department: userData.department || '',
+          name: userData.name !== undefined ? userData.name : data.users[idx].name,
+          username: userData.username !== undefined ? userData.username : data.users[idx].username,
+          password: userData.password !== undefined ? userData.password : data.users[idx].password,
+          email: userData.email !== undefined ? userData.email : data.users[idx].email,
+          phone: userData.phone !== undefined ? userData.phone : data.users[idx].phone,
+          role: userData.role !== undefined ? userData.role : data.users[idx].role,
+          department: userData.department !== undefined ? userData.department : data.users[idx].department,
           avatarUrl: userData.avatarUrl !== undefined ? userData.avatarUrl : data.users[idx].avatarUrl
         };
         saveLocalBackup();
